@@ -42,3 +42,18 @@ jobs:
         run: pytest --cov=src --cov-report=term-missing --cov-report=xml
       - name: Coverage floor
         run: coverage report --fail-under=80
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t enterprise-mcp-agent-platform:ci .
+      - name: Container serves /healthz as non-root
+        run: |
+          docker run -d --name api -p 8000:8000 enterprise-mcp-agent-platform:ci
+          for i in $(seq 1 20); do curl -fsS localhost:8000/healthz && break || sleep 1; done
+          curl -fsS localhost:8000/healthz
+          test "$(docker exec api id -u)" = "10001"
+      - if: failure()
+        run: docker logs api
