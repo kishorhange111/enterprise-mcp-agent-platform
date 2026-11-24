@@ -7,6 +7,12 @@ from src.agent.checkpoint import (
     SQLiteCheckpointStore,
     StepRecord,
 )
+from src.agent.hitl import (
+    ApprovalError,
+    ApprovalRequest,
+    ApprovalStatus,
+    HITLApprovalQueue,
+)
 from src.agent.retry import (
     CircuitBreaker,
     CircuitOpenError,
@@ -26,10 +32,14 @@ __all__ = [
     "AgentGraph",
     "AgentRuntime",
     "AgentState",
+    "ApprovalError",
+    "ApprovalRequest",
+    "ApprovalStatus",
     "CheckpointStore",
     "CircuitBreaker",
     "CircuitOpenError",
     "ExecutionOutcome",
+    "HITLApprovalQueue",
     "InMemoryCheckpointStore",
     "NodeResult",
     "RetryPolicy",
