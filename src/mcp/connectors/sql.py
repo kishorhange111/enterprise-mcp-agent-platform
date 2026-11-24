@@ -54,6 +54,18 @@ class SQLSafetyValidator:
             "INTO",
             "LOAD_EXTENSION",
             "PG_SLEEP",
+            "SLEEP",
+            "BENCHMARK",
+            "PG_READ_FILE",
+            "PG_READ_BINARY_FILE",
+            "PG_LS_DIR",
+            "LO_IMPORT",
+            "LO_EXPORT",
+            "DBLINK",
+            "READFILE",
+            "WRITEFILE",
+            "RANDOMBLOB",
+            "ZEROBLOB",
         }
     )
 
@@ -90,7 +102,7 @@ class SQLSafetyValidator:
         pos = 0
         for match in self._TOKEN_RE.finditer(sql):
             if match.start() != pos:
-                raise SQLSafetyError(f"Unexpected SQL syntax near: {sql[pos:match.start()]!r}")
+                raise SQLSafetyError(f"Unexpected SQL syntax near: {sql[pos : match.start()]!r}")
             pos = match.end()
             kind = match.lastgroup or ""
             value = match.group(0)
@@ -152,30 +164,69 @@ class SQLSafetyValidator:
 
     @staticmethod
     def _extract_cte_names(tokens: list[tuple[str, str]]) -> set[str]:
+        """Names defined as ``WITH name AS (`` / ``, name AS (``; plain ``table AS alias`` is not a CTE."""
         ctes: set[str] = set()
-        for idx, (kind, val) in enumerate(tokens[:-2]):
-            if kind == "word" and val.upper() == "WITH":
-                nxt_kind, nxt_val = tokens[idx + 1]
-                if nxt_kind == "word" and nxt_val.upper() != "RECURSIVE":
-                    ctes.add(nxt_val.lower())
-            if kind == "word" and idx + 1 < len(tokens):
-                nxt_kind, nxt_val = tokens[idx + 1]
-                if nxt_kind == "word" and nxt_val.upper() == "AS":
-                    ctes.add(val.lower())
+        if not tokens or tokens[0][1].upper() != "WITH":
+            return ctes
+        for idx in range(1, len(tokens) - 2):
+            kind, val = tokens[idx]
+            prev = tokens[idx - 1][1].upper()
+            if kind != "word" or prev not in {"WITH", "RECURSIVE", ","}:
+                continue
+            nxt = tokens[idx + 1]
+            if nxt[1].upper() == "AS" and tokens[idx + 2][1] == "(":
+                ctes.add(val.lower())
         return ctes
 
-    @staticmethod
-    def _extract_table_names(
-        tokens: list[tuple[str, str]], cte_names: set[str]
-    ) -> list[str]:
+    _ALIAS_STOP: frozenset[str] = frozenset(
+        {"WHERE", "GROUP", "ORDER", "HAVING", "LIMIT", "UNION", "INTERSECT", "EXCEPT", "ON", "USING",
+         "JOIN", "INNER", "LEFT", "RIGHT", "FULL", "CROSS", "NATURAL", "OFFSET", "FETCH", "FOR", "WINDOW"}
+    )  # fmt: skip
+
+    @classmethod
+    def _extract_table_names(cls, tokens: list[tuple[str, str]], cte_names: set[str]) -> list[str]:
+        """Collect tables after FROM/JOIN, including comma-joined lists (``FROM a, b AS x, c``)."""
         tables: list[str] = []
-        for idx, (kind, val) in enumerate(tokens[:-1]):
+
+        def add(name: str) -> None:
+            name = name.strip('"').lower()
+            if name not in cte_names and name not in tables:
+                tables.append(name)
+
+        n = len(tokens)
+        idx = 0
+        while idx < n - 1:
+            kind, val = tokens[idx]
             if kind == "word" and val.upper() in {"FROM", "JOIN"}:
-                nxt_kind, nxt_val = tokens[idx + 1]
-                if nxt_kind in {"word", "quoted_ident"}:
-                    name = nxt_val.strip('"').lower()
-                    if name not in cte_names and name not in tables:
-                        tables.append(name)
+                idx += 1
+                while idx < n:
+                    nxt_kind, nxt_val = tokens[idx]
+                    if nxt_kind not in {"word", "quoted_ident"}:
+                        break  # subquery "(" etc.: inner FROM is handled by the outer scan
+                    add(nxt_val)
+                    idx += 1
+                    # schema-qualified name: record the schema part too, so "public.x" cannot hide x
+                    while (
+                        idx + 1 < n
+                        and tokens[idx][1] == "."
+                        and tokens[idx + 1][0] in {"word", "quoted_ident"}
+                    ):
+                        add(tokens[idx + 1][1])
+                        idx += 2
+                    if idx < n and tokens[idx][1].upper() == "AS":
+                        idx += 2
+                    elif (
+                        idx < n
+                        and tokens[idx][0] == "word"
+                        and tokens[idx][1].upper() not in cls._ALIAS_STOP
+                    ):
+                        idx += 1
+                    if idx < n and tokens[idx][1] == ",":
+                        idx += 1
+                        continue
+                    break
+                continue
+            idx += 1
         return tables
 
 
@@ -233,15 +284,12 @@ class SQLReadOnlyConnector:
         visible = [
             t
             for t in all_tables
-            if self.validator.allowed_tables is None
-            or t.lower() in self.validator.allowed_tables
+            if self.validator.allowed_tables is None or t.lower() in self.validator.allowed_tables
         ]
         schemas: dict[str, list[dict[str, str]]] = {}
         for table in visible:
             col_cur = self._conn.execute(f'PRAGMA table_info("{table}")')
-            schemas[table] = [
-                {"name": str(c[1]), "type": str(c[2])} for c in col_cur.fetchall()
-            ]
+            schemas[table] = [{"name": str(c[1]), "type": str(c[2])} for c in col_cur.fetchall()]
         return {"tenant_id": ctx.tenant_id, "tables": schemas}
 
     def register_tools(self, registry: ToolRegistry) -> None:
