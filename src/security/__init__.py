@@ -1,5 +1,13 @@
 """Security controls: RBAC, row-level policies, and guardrails."""
 
+from src.security.guardrails import (
+    GuardrailMiddleware,
+    GuardrailViolationError,
+    InjectionCheckResult,
+    PIIRedactor,
+    PromptInjectionDetector,
+    RedactionResult,
+)
 from src.security.policies import (
     DataClassification,
     PolicyEngine,
@@ -18,8 +26,14 @@ __all__ = [
     "AuthorizationDecision",
     "AuthorizationError",
     "DataClassification",
+    "GuardrailMiddleware",
+    "GuardrailViolationError",
+    "InjectionCheckResult",
+    "PIIRedactor",
     "Permission",
     "PolicyEngine",
+    "PromptInjectionDetector",
     "RBACEngine",
+    "RedactionResult",
     "RowLevelPolicy",
 ]
