@@ -4,7 +4,7 @@
 
 | Surface | Corpus | Result |
 |---|---|---|
-| SQL connector (`SQLSafetyValidator`) | 31 malicious payloads (DDL/DML, stacked queries, comment tricks, allowlist bypass via aliases / comma joins / subqueries / CTEs / schema qualification, file and sleep functions) | all rejected |
+| SQL connector (`SQLSafetyValidator`) | 32 malicious payloads (DDL/DML, stacked queries, comment tricks, allowlist bypass via aliases / comma joins / subqueries / CTEs / schema qualification, file and sleep functions) | all rejected |
 | SQL connector, legitimate queries | 6 queries incl. joins, aliases, CTE chains | all accepted and row-bounded |
 | Prompt-injection detector | 7 attack prompts | all blocked |
 | Prompt-injection detector, benign | 6 prompts | none blocked |
