@@ -1,5 +1,6 @@
 """Enterprise MCP connectors (SQL, Ticketing, Knowledge Base)."""
 
+from src.mcp.connectors.docs import Document, KnowledgeBaseConnector
 from src.mcp.connectors.sql import (
     SQLReadOnlyConnector,
     SQLSafetyError,
@@ -14,8 +15,10 @@ from src.mcp.connectors.tickets import (
 )
 
 __all__ = [
+    "Document",
     "IdempotencyConflictError",
     "InvalidTicketTransitionError",
+    "KnowledgeBaseConnector",
     "SQLReadOnlyConnector",
     "SQLSafetyError",
     "SQLSafetyValidator",
