@@ -13,6 +13,7 @@ authors = [{ name = "Kishor Hange" }]
 dependencies = [
     "pydantic>=2.7",
     "PyYAML>=6.0",
+    "jsonschema>=4.0",
     "starlette>=0.37",
     "uvicorn>=0.29",
     "httpx>=0.27",
