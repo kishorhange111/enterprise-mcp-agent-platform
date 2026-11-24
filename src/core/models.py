@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 def utc_now() -> datetime:
@@ -142,10 +142,8 @@ class AgentTask(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=utc_now)
 
-    @field_validator("tenant_id")
-    @classmethod
-    def check_tenant_matches_principal(cls, value: str, info: Any) -> str:
-        principal = info.data.get("principal")
-        if principal is not None and principal.tenant_id != value:
+    @model_validator(mode="after")
+    def check_tenant_matches_principal(self) -> AgentTask:
+        if self.principal.tenant_id != self.tenant_id:
             raise ValueError("AgentTask tenant_id must match principal.tenant_id")
-        return value
+        return self
