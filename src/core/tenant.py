@@ -57,8 +57,7 @@ def assert_tenant_isolation(resource_tenant_id: str) -> None:
     ctx = require_tenant_context()
     if resource_tenant_id != ctx.tenant_id:
         raise TenantIsolationError(
-            f"Cross-tenant access denied: active='{ctx.tenant_id}', "
-            f"resource='{resource_tenant_id}'"
+            f"Cross-tenant access denied: active='{ctx.tenant_id}', resource='{resource_tenant_id}'"
         )
 
 

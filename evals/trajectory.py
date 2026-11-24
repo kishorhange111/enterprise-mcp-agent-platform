@@ -60,9 +60,7 @@ def load_golden_cases(path: str | Path) -> list[GoldenTrajectoryCase]:
 class TrajectoryEvaluator:
     """Scores actual AgentState trajectories against GoldenTrajectoryCase expectations."""
 
-    def evaluate_state(
-        self, case: GoldenTrajectoryCase, state: AgentState
-    ) -> TrajectoryScore:
+    def evaluate_state(self, case: GoldenTrajectoryCase, state: AgentState) -> TrajectoryScore:
         """Compute precision/recall/F1, efficiency, and pass/fail for one trajectory."""
         failures: list[str] = []
         status_match = state.status == case.expected_status
@@ -108,15 +106,19 @@ class TrajectoryEvaluator:
             failures.append(f"Step count {state.step_count} exceeded budget {case.max_steps}")
 
         serialized_out = json.dumps(state.final_output, default=str).lower()
-        output_match = all(
-            sub.lower() in serialized_out for sub in case.required_output_substrings
-        )
+        output_match = all(sub.lower() in serialized_out for sub in case.required_output_substrings)
         if not output_match:
             failures.append(
                 f"Final output missing required substrings: {case.required_output_substrings}"
             )
 
-        passed = status_match and not forbidden_hit and (not expected_set or recall == 1.0) and output_match and state.step_count <= case.max_steps
+        passed = (
+            status_match
+            and not forbidden_hit
+            and (not expected_set or recall == 1.0)
+            and output_match
+            and state.step_count <= case.max_steps
+        )
         return TrajectoryScore(
             case_id=case.case_id,
             passed=passed,

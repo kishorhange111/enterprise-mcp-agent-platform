@@ -58,6 +58,9 @@ def test_prometheus_metrics_and_mcp_hook_exposition() -> None:
     metrics.set_hitl_pending(tenant_id="acme", count=3)
 
     text = metrics.render_prometheus_text()
-    assert 'mcp_tool_calls_total{status="success",tenant_id="acme",tool_name="health.ping"} 1.0' in text
+    assert (
+        'mcp_tool_calls_total{status="success",tenant_id="acme",tool_name="health.ping"} 1.0'
+        in text
+    )
     assert 'guardrail_blocks_total{rule="instruction_override",tenant_id="acme"} 1.0' in text
     assert 'hitl_pending_approvals{tenant_id="acme"} 3.0' in text

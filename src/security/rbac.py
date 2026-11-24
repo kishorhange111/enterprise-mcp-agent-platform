@@ -78,9 +78,7 @@ class RBACEngine:
         self,
         role_matrix: dict[Role, frozenset[Permission]] | None = None,
     ) -> None:
-        self._base_matrix: dict[Role, frozenset[Permission]] = dict(
-            role_matrix or ROLE_PERMISSIONS
-        )
+        self._base_matrix: dict[Role, frozenset[Permission]] = dict(role_matrix or ROLE_PERMISSIONS)
         self._tenant_overrides: dict[str, dict[Role, frozenset[Permission]]] = {}
 
     def set_tenant_override(

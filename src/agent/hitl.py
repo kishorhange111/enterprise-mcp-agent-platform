@@ -92,9 +92,7 @@ class HITLApprovalQueue:
         if req is None:
             raise KeyError(f"Approval request '{approval_id}' not found")
         if req.tenant_id != tenant_id:
-            raise TenantIsolationError(
-                f"Cross-tenant access denied for approval '{approval_id}'"
-            )
+            raise TenantIsolationError(f"Cross-tenant access denied for approval '{approval_id}'")
         return req
 
     def decide(
