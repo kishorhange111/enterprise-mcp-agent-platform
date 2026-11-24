@@ -1,0 +1,34 @@
+tenant:
+  tenant_id: finserv-eu
+  name: EuroBank Financial Services
+  tier: enterprise
+  data_residency: eu-west-1
+  enabled: true
+  quota:
+    max_requests_per_min: 300
+    max_tool_calls_per_run: 12
+    max_sql_rows: 250
+    allowed_connectors:
+      - sql_readonly
+      - knowledge_base
+  metadata:
+    industry: financial_services
+    compliance: gdpr-soc2
+
+guardrails:
+  injection_block_threshold: 0.60
+  redact_inputs: true
+  redact_outputs: true
+
+hitl:
+  enforce_four_eyes: true
+  default_sla_seconds: 600
+  escalation_target: eu-risk-desk
+
+allowed_sql_tables:
+  - accounts_summary
+  - compliance_alerts
+
+role_overrides:
+  viewer:
+    - doc:read
