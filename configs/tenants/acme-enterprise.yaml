@@ -1,0 +1,32 @@
+tenant:
+  tenant_id: acme-enterprise
+  name: Acme Global Logistics
+  tier: enterprise
+  data_residency: ${ACME_REGION:-us-east-1}
+  enabled: true
+  quota:
+    max_requests_per_min: 600
+    max_tool_calls_per_run: 20
+    max_sql_rows: 1000
+    allowed_connectors:
+      - sql_readonly
+      - ticketing
+      - knowledge_base
+  metadata:
+    industry: supply_chain
+    fde_owner: kishor-hange
+
+guardrails:
+  injection_block_threshold: 0.70
+  redact_inputs: true
+  redact_outputs: true
+
+hitl:
+  enforce_four_eyes: true
+  default_sla_seconds: 900
+  escalation_target: acme-sre-oncall
+
+allowed_sql_tables:
+  - orders
+  - shipments
+  - sla_metrics
