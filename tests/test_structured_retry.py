@@ -25,9 +25,9 @@ def test_structured_output_extracts_fenced_json_and_repairs() -> None:
     validator = StructuredOutputValidator()
     responses = iter(
         [
-            "```json\n{\"severity\": \"INVALID\", \"root_cause\": \"db\"}\n```",
-            "```json\n{\"severity\": \"P1\", \"root_cause\": \"connection pool exhausted\", "
-            "\"action_items\": [\"scale pool\"]}\n```",
+            '```json\n{"severity": "INVALID", "root_cause": "db"}\n```',
+            '```json\n{"severity": "P1", "root_cause": "connection pool exhausted", '
+            '"action_items": ["scale pool"]}\n```',
         ]
     )
     feedbacks: list[str | None] = []
@@ -71,9 +71,7 @@ def test_retry_policy_backoff_and_fallback() -> None:
         return "primary-ok"
 
     policy = RetryPolicy(max_attempts=3, base_delay_s=0.1, backoff_multiplier=2.0)
-    outcome = execute_with_retry_and_fallback(
-        flaky_primary, policy=policy, sleep_fn=sleeps.append
-    )
+    outcome = execute_with_retry_and_fallback(flaky_primary, policy=policy, sleep_fn=sleeps.append)
     assert outcome.value == "primary-ok"
     assert outcome.attempts == 3
     assert outcome.used_fallback is False

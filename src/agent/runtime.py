@@ -136,9 +136,7 @@ class AgentRuntime:
         if state is None:
             raise KeyError(f"No checkpoint found for task '{task_id}'")
         if state.tenant_id != principal.tenant_id:
-            raise TenantIsolationError(
-                f"Cross-tenant resume denied for task '{task_id}'"
-            )
+            raise TenantIsolationError(f"Cross-tenant resume denied for task '{task_id}'")
 
         if resume_updates:
             state.memory.update(resume_updates)

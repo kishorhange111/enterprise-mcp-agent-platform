@@ -85,8 +85,7 @@ class KnowledgeBaseConnector:
         eligible = [
             doc
             for doc in self._docs.values()
-            if self._is_accessible(ctx.principal, doc)
-            and (tag is None or tag in doc.tags)
+            if self._is_accessible(ctx.principal, doc) and (tag is None or tag in doc.tags)
         ]
         if not eligible:
             return {"tenant_id": ctx.tenant_id, "query": query, "results": []}

@@ -57,9 +57,7 @@ class PlatformMetrics:
     ) -> None:
         """Increment tool call counter and observe latency histogram."""
         status = "success" if success else "error"
-        self.tool_calls_total.labels(
-            tenant_id=tenant_id, tool_name=tool_name, status=status
-        ).inc()
+        self.tool_calls_total.labels(tenant_id=tenant_id, tool_name=tool_name, status=status).inc()
         self.tool_latency_ms.labels(tenant_id=tenant_id, tool_name=tool_name).observe(latency_ms)
 
     def record_guardrail_block(self, *, tenant_id: str, rule: str) -> None:
